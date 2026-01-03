@@ -1,4 +1,10 @@
-# biblematedata
+# BibleMate AI Data
+
+This repository focuses only on the Bible Data of a larger project, [BibleMate AI](https://github.com/eliranwong/biblemate).
+
+For CLI Version / MCP Server / Agent Mode / Partner Mode / Web UI / HTTP Server / API Server, read https://github.com/eliranwong/biblemate
+
+---
 
 Bible Data for BibleMate AI Setup.
 
