@@ -2,7 +2,7 @@ from setuptools import setup
 from setuptools.command.install import install
 import os, shutil, platform, sys
 
-version = "0.0.2"
+version = "0.0.3"
 with open(os.path.join("biblematedata", "version.txt"), "w", encoding="utf-8") as fileObj:
     fileObj.write(version)
 
@@ -90,5 +90,6 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
     ],
 )
