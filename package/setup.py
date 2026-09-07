@@ -2,7 +2,7 @@ from setuptools import setup
 from setuptools.command.install import install
 import os, shutil, platform, sys
 
-version = "0.0.3"
+version = "0.0.4"
 with open(os.path.join("biblematedata", "version.txt"), "w", encoding="utf-8") as fileObj:
     fileObj.write(version)
 
@@ -35,7 +35,7 @@ open(os.path.join(package, "config.py"), "w").close()
 setup(
     name=package,
     version=version,
-    python_requires=">=3.10, <3.13",
+    python_requires=">=3.10, <3.13.30",
     description=f"BibleMate AI - Automate Your Bible Study",
     long_description=long_description,
     author="Eliran Wong",
