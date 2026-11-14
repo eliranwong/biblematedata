@@ -275,7 +275,7 @@ def main():
     for i in FILE_IDS:
         download_google_drive_file(i)
     # setup custom folders
-    for i in ("lexicons", "commentaries", "audio", "bibles"):
+    for i in ("lexicons", "commentaries", "audio", "bibles", "books"):
         target_folder = os.path.join(os.path.expanduser("~"), "biblemate", "data_custom", i)
         if not os.path.isdir(target_folder):
             Path(target_folder).mkdir(parents=True, exist_ok=True)
