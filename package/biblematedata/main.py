@@ -121,7 +121,7 @@ FILE_IDS = {
     "dictionary.data": (("data",), "1NfbkhaR-dtmT1_Aue34KypR3mfPtqCZn"),
     "encyclopedia.data": (("data",), "1OuM6WxKfInDBULkzZDZFryUkU1BFtym8"),
     # books - UBA
-    "books": ((), "10BmoBH-XOY4QOiYQ0gyzUn4YxsHYnPte"),
+    "books": ((), "1ReqTFSrOvSU3kNdmRHg5tGQniwe3dIV1"),
     # podcast - new
     "podcast": ((), "1aNS8rtdQcTZGub6jhZhEarpUK3R4f_x8"),
     # audio (via git clone)
