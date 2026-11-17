@@ -37,7 +37,7 @@ FILE_IDS = {
     "collection.db": (("vectors",), "18tUxwdcaGPaQ7e7m-RIIEEBFNwyBFWva"),
     "dictionary.db": (("vectors",), "1JYjxA6Zf2TkJ4eHEJ9xSaG5XpGcz46yq"),
     "encyclopedia.db": (("vectors",), "1yQmwXIjvZEbrUtoMAm7OQoAYVbnRZVP7"),
-    "exlb.db": (("vectors",), "1zY9sKi53ct4fyH5KwOe31uAsSDJ_6t8z"),
+    "exlb.db": (("vectors",), "12ob9huPct-5LT3mOOL6-r2WZBfSJmrt4"),
     # commentaries - new
     "cAIC.commentary": (("commentaries",), "1tkNrdpw5fmRJ0-3_uvJiRz-f8hMQJIPh"),
     "cAICSC.commentary": (("commentaries",), "1sjPHwZf4gVp5O35yYr7qbjJDC0KzSsvh"),
@@ -105,11 +105,11 @@ FILE_IDS = {
     "collections3.sqlite": ((), "1zvNWt0ffo979Mkgp4XZLurbedY8GC4qU"),
     # core - UBA
     "images.sqlite": ((), "18rjzm_2sRcTN22oJPNZrxPZ3eIh_cphq"),
-    "indexes2.sqlite": ((), "1EwYNGBE8kCwQ2GsJnwXlg-kM8PURiNG6"),
+    "indexes2.sqlite": ((), "1LN2lseZqc6eryXXJ5JCp6eJ4QEOpEeXv"),
     "cross-reference.sqlite": ((), "1uitkNgqOH0TrKXwbULF4ibLl13WnZ-U2"),
     "morphology.sqlite": ((), "11QfpwEd5fjdDglPiqzygLNN99AVz2mw5"),
     # data - new
-    "biblePeople.data": (("data",), "1o7mfGoRAgPXKAjZfpj2dsY2Xp4vX8NdU"),
+    "biblePeople.data": (("data",), "1Vieg_nhdRn6IdLYnsxJ4ylOI-oR3oXPc"),
     "book_analysis_sc.data": (("data",), "19PIQCP99HI1TEaJiaoMnmKbMu_vUP_OP"),
     "book_analysis_tc.data": (("data",), "19XtVixBGFnCj0akutTivq13eT_Gkn6gU"),
     "book_analysis.data": (("data",), "1_Z4qjwgxUC4O-Pz7rX72ZtM3qLOD5ZL-"),
@@ -117,7 +117,7 @@ FILE_IDS = {
     "chapter_summary_tc.data": (("data",), "1jpJLNB2UZ7U0VSFnlqCh_idL-j5jLUYX"),
     "chapter_summary.data": (("data",), "1W5a04a4d4hfQEMgHX1x0hUOY4Q2Cu-hp"),
     # data - UBA
-    "exlb3.data": (("data",), "1gp2Unsab85Se-IB_tmvVZQ3JKGvXLyMP"),
+    "exlb3.data": (("data",), "1i8AOJRd1VI5821sbZsNfK8FeXiRjpC0L"),
     "dictionary.data": (("data",), "1NfbkhaR-dtmT1_Aue34KypR3mfPtqCZn"),
     "encyclopedia.data": (("data",), "1OuM6WxKfInDBULkzZDZFryUkU1BFtym8"),
     # books - UBA
