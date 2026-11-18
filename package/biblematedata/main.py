@@ -117,7 +117,7 @@ FILE_IDS = {
     "chapter_summary_tc.data": (("data",), "1jpJLNB2UZ7U0VSFnlqCh_idL-j5jLUYX"),
     "chapter_summary.data": (("data",), "1W5a04a4d4hfQEMgHX1x0hUOY4Q2Cu-hp"),
     # data - UBA
-    "exlb3.data": (("data",), "1i8AOJRd1VI5821sbZsNfK8FeXiRjpC0L"),
+    "exlb3.data": (("data",), "1ljDgF4qaqyP6XqAFYahdKpyc9I0TJbfQ"),
     "dictionary.data": (("data",), "1NfbkhaR-dtmT1_Aue34KypR3mfPtqCZn"),
     "encyclopedia.data": (("data",), "1OuM6WxKfInDBULkzZDZFryUkU1BFtym8"),
     # books - UBA
