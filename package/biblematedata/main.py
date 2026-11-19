@@ -74,7 +74,7 @@ FILE_IDS = {
     "cWesley.commentary": (("commentaries",), "1rerXER1ZDn4e1uuavgFDaPDYus1V-tS5"),
     "cWhedon.commentary": (("commentaries",), "1FPJUJOKodFKG8wsNAvcLLc75QbM5WO-9"),
     # lexicons - new
-    "lexicons": ((), "1xlvJ6GURwYCxPnYwo2xuyREutWTeWMcH"),
+    "lexicons": ((), "1dVP7fb0ZqivygSU7dlpLA2M84mJ0COP-"),
     # bibles - new
     "ODB.bible": (("original",), "1DD8IsGnH2YAcyHeIp4_CKiezw0vvoMUF"),
     "OIB.bible": (("original",), "1RipYgwIflQprP1h02_7L0chpcINNFxef"),
@@ -107,7 +107,7 @@ FILE_IDS = {
     "images.sqlite": ((), "18rjzm_2sRcTN22oJPNZrxPZ3eIh_cphq"),
     "indexes2.sqlite": ((), "1LN2lseZqc6eryXXJ5JCp6eJ4QEOpEeXv"),
     "cross-reference.sqlite": ((), "1uitkNgqOH0TrKXwbULF4ibLl13WnZ-U2"),
-    "morphology.sqlite": ((), "11QfpwEd5fjdDglPiqzygLNN99AVz2mw5"),
+    "morphology.sqlite": ((), "1FpKrMSMUg1PJBlSIkwScbUB-j7M7MaFj"),
     # data - new
     "biblePeople.data": (("data",), "1Vieg_nhdRn6IdLYnsxJ4ylOI-oR3oXPc"),
     "book_analysis_sc.data": (("data",), "19PIQCP99HI1TEaJiaoMnmKbMu_vUP_OP"),
