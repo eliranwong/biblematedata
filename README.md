@@ -4,6 +4,8 @@ This repository focuses only on the Bible Data of a larger project, [BibleMate A
 
 For CLI Version / MCP Server / Agent Mode / Partner Mode / Web UI / HTTP Server / API Server, read https://github.com/eliranwong/biblemate
 
+Web Demo: https://web.biblemate.ai
+
 ---
 
 Bible Data for BibleMate AI Setup.
@@ -33,3 +35,15 @@ Install `git` command line tool separately.
 # Troubleshoot
 
 If there are errors due to connectivity issues, run `biblematedata` repeatedly until all essential data are installed with errors.
+
+# Related Data Repositories
+
+- BibleMate Data - Names: https://github.com/eliranwong/biblematedata-names
+- BibleMate Data - Lexicon Mapping (HALOT, CHALOT, BDBE, BDAG, LSJ): https://github.com/eliranwong/biblematedata-mapping-HALOT-CHALOT-BDBE-BDAG-LSJ
+- BibleMate Data - Tagged Bibles: https://github.com/eliranwong/biblematedata-tagged-bibles
+
+# Related Data Repositories
+
+- BibleMate Data - Names: https://github.com/eliranwong/biblematedata-names
+- BibleMate Data - Lexicon Mapping (HALOT, CHALOT, BDBE, BDAG, LSJ): https://github.com/eliranwong/biblematedata-mapping-HALOT-CHALOT-BDBE-BDAG-LSJ
+- BibleMate Data - Tagged Bibles: https://github.com/eliranwong/biblematedata-tagged-bibles
