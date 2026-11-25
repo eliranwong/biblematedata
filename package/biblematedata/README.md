@@ -1,35 +1,56 @@
 # BibleMate AI Data
 
-This repository focuses only on the Bible Data of a larger project, [BibleMate AI](https://github.com/eliranwong/biblemate).
+Essential Bible data for [BibleMate Web](https://github.com/eliranwong/biblemateweb) and [BibleMate Agentic Workspace](https://github.com/eliranwong/biblemate-agentic-workspace) (part of [BibleMate AI](https://github.com/eliranwong/biblemate)).
 
-For CLI Version / MCP Server / Agent Mode / Partner Mode / Web UI / HTTP Server / API Server, read https://github.com/eliranwong/biblemate
+Web Demo: https://web.biblemate.ai
 
 ---
 
-Bible Data for BibleMate AI Setup.
+## Built For
 
-Install Essential Data for running [BibleMate AI](https://github.com/eliranwong/biblemate):
+- **BibleMate Web** (Web GUI / HTTP Server / API Server): https://github.com/eliranwong/biblemateweb
+- **BibleMate Agentic Workspace**: https://github.com/eliranwong/biblemate-agentic-workspace
+- **BibleMate CLI** (CLI version / MCP server): https://github.com/eliranwong/biblematecli
 
-CLI version / MCP server:
+## Requirement
 
-https://github.com/eliranwong/biblematecli
+- Python `>= 3.10`
+- `git` command line tool (only required if downloading Bible audio files)
 
-Web GUI / Http Server / API Server:
+## Installation
 
-https://github.com/eliranwong/biblemateweb
+1. Install or upgrade the `biblematedata` package:
 
-# Requirement
+```bash
+pip install -U biblematedata
+```
 
-Install `git` command line tool separately.
+2. Download and set up the data into `~/biblemate/data`:
 
-# Install BibleMate Data
+- **Full setup** (databases, podcast files, and Bible audio — recommended for **BibleMate Web**):
 
-> pip install -U biblematedata
+```bash
+biblematedata
+```
 
-# Set Up Data For BibleMate Web / BibleMate CLI
+- **Databases only** (skip podcast and Bible audio — recommended for **BibleMate Agentic Workspace** users):
 
-> biblematedata
+```bash
+biblematedata --no-podcast --no-audio
+```
 
-# Troubleshoot
+### Available Options
 
-If there are errors due to connectivity issues, run `biblematedata` repeatedly until all essential data are installed with errors.
+- `--no-podcast` — Skip downloading podcast files from [biblematedata-podcast](https://github.com/eliranwong/biblematedata-podcast).
+- `--no-audio` — Skip downloading Bible audio files.
+
+## Troubleshoot
+
+If there are errors due to connectivity issues, run `biblematedata` (with the same flags) again—already downloaded files will be skipped automatically.
+
+## Related Data Repositories
+
+- BibleMate Data - Podcast: https://github.com/eliranwong/biblematedata-podcast
+- BibleMate Data - Names: https://github.com/eliranwong/biblematedata-names
+- BibleMate Data - Lexicon Mapping (HALOT, CHALOT, BDBE, BDAG, LSJ): https://github.com/eliranwong/biblematedata-mapping-HALOT-CHALOT-BDBE-BDAG-LSJ
+- BibleMate Data - Tagged Bibles: https://github.com/eliranwong/biblematedata-tagged-bibles

@@ -2,3 +2,4 @@
 nohup.out
 .nicegui/*.json
 .gitignore
+package/biblematedata/__pycache__/main.cpython-314.pyc
