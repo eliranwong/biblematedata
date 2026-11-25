@@ -1,4 +1,4 @@
-import os, re, zipfile, time, requests, shutil
+import argparse, os, re, zipfile, time, requests, shutil
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from prompt_toolkit.formatted_text import HTML
@@ -262,28 +262,35 @@ def downloadbibleaudioaction(module, repo, force=False):
         print("Errors!")
 
 def main():
+    parser = argparse.ArgumentParser(description="Download and set up BibleMate AI data.")
+    parser.add_argument("--no-podcast", action="store_true", help="Skip downloading podcast files.")
+    parser.add_argument("--no-audio", action="store_true", help="Skip downloading Bible audio files.")
+    args = parser.parse_args()
+
     # download database files from GitHub
     download_github_data()
     # download podcast files from GitHub
-    download_github_podcast()
+    if not args.no_podcast:
+        download_github_podcast()
     # setup custom folders
     for i in ("lexicons", "commentaries", "audio", "bibles", "books", "clauses"):
         target_folder = os.path.join(os.path.expanduser("~"), "biblemate", "data_custom", i)
         if not os.path.isdir(target_folder):
             Path(target_folder).mkdir(parents=True, exist_ok=True)
     # downloading default audio with git clone
-    for i in (
-        "NET (American accent; verse-by-verse)",
-        "OHGB (Hebrew & Greek; slow; verse-by-verse)",
-        "BHS5 (Hebrew; word-by-word)",
-        "OGNT (Greek; word-by-word)",
-    ):
-        module, repo, *_ = AUDIO_REPOS[i]
-        downloadbibleaudioaction(module, repo)
-    # download more audio
-    download_audio = True
-    while download_audio:
-        download_audio = downloadbibleaudio()
+    if not args.no_audio:
+        for i in (
+            "NET (American accent; verse-by-verse)",
+            "OHGB (Hebrew & Greek; slow; verse-by-verse)",
+            "BHS5 (Hebrew; word-by-word)",
+            "OGNT (Greek; word-by-word)",
+        ):
+            module, repo, *_ = AUDIO_REPOS[i]
+            downloadbibleaudioaction(module, repo)
+        # download more audio
+        download_audio = True
+        while download_audio:
+            download_audio = downloadbibleaudio()
 
 if __name__ == "__main__":
     main()
