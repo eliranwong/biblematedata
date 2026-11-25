@@ -1,7 +1,12 @@
-import os, zipfile, gdown, traceback, time, random, requests, shutil
+import os, re, zipfile, gdown, time, random, requests, shutil
+from collections import defaultdict
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.shortcuts import radiolist_dialog
 from pathlib import Path
+
+GITHUB_REPO = "eliranwong/biblematedata"
+GITHUB_BRANCH = "main"
+GITHUB_DATA_PREFIX = "biblemate/data/"
 
 
 AUDIO_REPOS = {
@@ -32,100 +37,101 @@ AUDIO_REPOS = {
 }
 
 FILE_IDS = {
-    # vectors - new
-    "bible.db": (("vectors",), "1x5WbytQHkiJHzDiAjaf_I6XTIkRyMIBF"),
-    "collection.db": (("vectors",), "18tUxwdcaGPaQ7e7m-RIIEEBFNwyBFWva"),
-    "dictionary.db": (("vectors",), "1JYjxA6Zf2TkJ4eHEJ9xSaG5XpGcz46yq"),
-    "encyclopedia.db": (("vectors",), "1yQmwXIjvZEbrUtoMAm7OQoAYVbnRZVP7"),
-    "exlb.db": (("vectors",), "12ob9huPct-5LT3mOOL6-r2WZBfSJmrt4"),
-    # commentaries - new
-    "cAIC.commentary": (("commentaries",), "1tkNrdpw5fmRJ0-3_uvJiRz-f8hMQJIPh"),
-    "cAICSC.commentary": (("commentaries",), "1sjPHwZf4gVp5O35yYr7qbjJDC0KzSsvh"),
-    "cAICTC.commentary": (("commentaries",), "1pKAzBeuFHXV7Jw6OTKQ9kqDlIUxt-Sf1"),
-    # commentaries - UBA
-    "cBarnes.commentary": (("commentaries",), "13uxButnFH2NRUV-YuyRZYCeh1GzWqO5J"),
-    "cBenson.commentary": (("commentaries",), "1MSRUHGDilogk7_iZHVH5GWkPyf8edgjr"),
-    "cBI.commentary": (("commentaries",), "1DUATP_0M7SwBqsjf20YvUDblg3_sOt2F"),
-    "cBrooks.commentary": (("commentaries",), "1pZNRYE6LqnmfjUem4Wb_U9mZ7doREYUm"),
-    "cCalvin.commentary": (("commentaries",), "1FUZGK9n54aXvqMAi3-2OZDtRSz9iZh-j"),
-    "cCBSC.commentary": (("commentaries",), "1IxbscuAMZg6gQIjzMlVkLtJNDQ7IzTh6"),
-    "cCECNT.commentary": (("commentaries",), "1MpBx7z6xyJYISpW_7Dq-Uwv0rP8_Mi-r"),
-    "cCGrk.commentary": (("commentaries",), "1Jf51O0R911Il0V_SlacLQDNPaRjumsbD"),
-    "cCHP.commentary": (("commentaries",), "1dygf2mz6KN_ryDziNJEu47-OhH8jK_ff"),
-    "cClarke.commentary": (("commentaries",), "1ZVpLAnlSmBaT10e5O7pljfziLUpyU4Dq"),
-    "cCPBST.commentary": (("commentaries",), "14zueTf0ioI-AKRo_8GK8PDRKael_kB1U"),
-    "cEBC.commentary": (("commentaries",), "1UA3tdZtIKQEx-xmXtM_SO1k8S8DKYm6r"),
-    "cECER.commentary": (("commentaries",), "1sCJc5xuxqDDlmgSn2SFWTRbXnHSKXeh_"),
-    "cEGNT.commentary": (("commentaries",), "1ZvbWnuy2wwllt-s56FUfB2bS2_rZoiPx"),
-    "cGCT.commentary": (("commentaries",), "1vK53UO2rggdcfcDjH6mWXAdYti4UbzUt"),
-    "cGill.commentary": (("commentaries",), "1O5jnHLsmoobkCypy9zJC-Sw_Ob-3pQ2t"),
-    "cHenry.commentary": (("commentaries",), "1m-8cM8uZPN-fLVcC-a9mhL3VXoYJ5Ku9"),
-    "cHH.commentary": (("commentaries",), "1RwKN1igd1RbN7phiJDiLPhqLXdgOR0Ms"),
-    "cICCNT.commentary": (("commentaries",), "1QxrzeeZYc0-GNwqwdDe91H4j1hGSOG6t"),
-    "cJFB.commentary": (("commentaries",), "1NT02QxoLeY3Cj0uA_5142P5s64RkRlpO"),
-    "cKD.commentary": (("commentaries",), "1rFFDrdDMjImEwXkHkbh7-vX3g4kKUuGV"),
-    "cLange.commentary": (("commentaries",), "1_PrTT71aQN5LJhbwabx-kjrA0vg-nvYY"),
-    "cMacL.commentary": (("commentaries",), "1p32F9MmQ2wigtUMdCU-biSrRZWrFLWJR"),
-    "cPHC.commentary": (("commentaries",), "1xTkY_YFyasN7Ks9me3uED1HpQnuYI8BW"),
-    "cPulpit.commentary": (("commentaries",), "1briSh0oDhUX7QnW1g9oM3c4VWiThkWBG"),
-    "cRob.commentary": (("commentaries",), "17VfPe4wsnEzSbxL5Madcyi_ubu3iYVkx"),
-    "cSpur.commentary": (("commentaries",), "1OVsqgHVAc_9wJBCcz6PjsNK5v9GfeNwp"),
-    "cVincent.commentary": (("commentaries",), "1ZZNnCo5cSfUzjdEaEvZ8TcbYa4OKUsox"),
-    "cWesley.commentary": (("commentaries",), "1rerXER1ZDn4e1uuavgFDaPDYus1V-tS5"),
-    "cWhedon.commentary": (("commentaries",), "1FPJUJOKodFKG8wsNAvcLLc75QbM5WO-9"),
-    # lexicons - new
-    "lexicons": ((), "1dVP7fb0ZqivygSU7dlpLA2M84mJ0COP-"),
-    # bibles - new
-    "ODB.bible": (("original",), "1DD8IsGnH2YAcyHeIp4_CKiezw0vvoMUF"),
-    "OIB.bible": (("original",), "1RipYgwIflQprP1h02_7L0chpcINNFxef"),
-    "OLB.bible": (("original",), "13wCL_cHTX-ZO6xcbtx6YhiZZuJq_iZht"),
-    "OPB.bible": (("original",), "1WzrQlFzOE1PK7Lg2QxcUo-zpFiQlJujO"),
-    "ORB.bible": (("original",), "17TnhpbkO7y261NcJ8GThEBpMpF_MeTjG"),
-    "OHGB.bible": (("bibles",), "1Wwn_HaVW_ViOdG7MA_3aAxZQajw7O4tK"),
-    "OHGBi.bible": (("bibles",), "1z5xSfTQ8FESr01xx-WKppRisLUECiXbV"),
-    # bibles - UBA
-    "ASV.bible": (("bibles",), "1oDuV54_zOl_L0GQqmYiLvgjk2pQu4iSr"),
-    "BSB.bible": (("bibles",), "1fQX8cT12LE9Q3dBUJyezTYg4a0AbdKbN"),
-    "CUV.bible": (("bibles",), "1SuXGZIx_ivz9ztPvnylO_ComYOYrJyzk"),
-    "CUVs.bible": (("bibles",), "1cu0FFIb_Zc3lQ71P1EJB3P8E5vDLnOt6"),
-    "ISV.bible": (("bibles",), "1_nmaakABx8wVsQHdBL9rVh2wtRK8uyyW"),
-    "KJV.bible": (("bibles",), "1ycOkEJ2JI_4iwjllb4mE02wkDvrsPlNq"),
-    "LEB.bible": (("bibles",), "1p-_phmh3y54i4FSLhzEd33_v0kzSjAZn"),
-    "LXX1.bible": (("bibles",), "1t9sgkQxYkZElg1M8f3QHYIF8oRAIN_hd"),
-    "LXX1i.bible": (("bibles",), "1vtGfv2otmb2N86M2QdRB6KdFjlNyAGOc"),
-    "LXX2.bible": (("bibles",), "1oZk5nYKcR1s2XtRLfU-H9IxCkCQ2px6U"),
-    "LXX2i.bible": (("bibles",), "1jgq30khM0Oqxa3phE07Wg4R2p15t1N12"),
-    "NET.bible": (("bibles",), "1pJ_9Wk4CmDdFO08wioOxs4krKjNeh4Ur"),
-    "SBLGNT.bible": (("bibles",), "1N1ryqvSytW3RFlOUy7rex0JdO2X5IzuK"),
-    "SBLGNTl.bible": (("bibles",), "1IgbX1ZBB05FgNglQM8t6GZBNSJVCu2fS"),
-    "ULT.bible": (("bibles",), "1C_YiWs7GsduCuBOO4vSR7c13RRFtIZGg"),
-    "UST.bible": (("bibles",), "1-s7NUKpPauer3w1hpu6W9YqVBjiLuXmc"),
-    "WEB.bible": (("bibles",), "1L9qAeamdZwGzVdf7jC4_ks05hyQa2R7l"),
-    # core - new
-    "collections3.sqlite": ((), "1zvNWt0ffo979Mkgp4XZLurbedY8GC4qU"),
-    # core - UBA
-    "images.sqlite": ((), "18rjzm_2sRcTN22oJPNZrxPZ3eIh_cphq"),
-    "indexes2.sqlite": ((), "1LN2lseZqc6eryXXJ5JCp6eJ4QEOpEeXv"),
-    "cross-reference.sqlite": ((), "1uitkNgqOH0TrKXwbULF4ibLl13WnZ-U2"),
-    "morphology.sqlite": ((), "1FpKrMSMUg1PJBlSIkwScbUB-j7M7MaFj"),
-    # data - new
-    "biblePeople.data": (("data",), "1Vieg_nhdRn6IdLYnsxJ4ylOI-oR3oXPc"),
-    "book_analysis_sc.data": (("data",), "19PIQCP99HI1TEaJiaoMnmKbMu_vUP_OP"),
-    "book_analysis_tc.data": (("data",), "19XtVixBGFnCj0akutTivq13eT_Gkn6gU"),
-    "book_analysis.data": (("data",), "1_Z4qjwgxUC4O-Pz7rX72ZtM3qLOD5ZL-"),
-    "chapter_summary_sc.data": (("data",), "10Au81R8qxB1kPGUS6sv2L5imDCgQDoEa"),
-    "chapter_summary_tc.data": (("data",), "1jpJLNB2UZ7U0VSFnlqCh_idL-j5jLUYX"),
-    "chapter_summary.data": (("data",), "1W5a04a4d4hfQEMgHX1x0hUOY4Q2Cu-hp"),
-    # data - UBA
-    "exlb3.data": (("data",), "1ljDgF4qaqyP6XqAFYahdKpyc9I0TJbfQ"),
-    "dictionary.data": (("data",), "1NfbkhaR-dtmT1_Aue34KypR3mfPtqCZn"),
-    "encyclopedia.data": (("data",), "1OuM6WxKfInDBULkzZDZFryUkU1BFtym8"),
-    # books - UBA
-    "books": ((), "1ReqTFSrOvSU3kNdmRHg5tGQniwe3dIV1"),
-    # podcast - new
+    # podcast - new (kept on Google Drive due to large number of files)
     "podcast": ((), "1aNS8rtdQcTZGub6jhZhEarpUK3R4f_x8"),
     # audio (via git clone)
 }
+
+_PART_RE = re.compile(r"^(.*\.zip)(?:\.part(\d+))?$")
+
+
+def list_github_data_archives(repo=GITHUB_REPO, branch=GITHUB_BRANCH, prefix=GITHUB_DATA_PREFIX):
+    """Fetch the file tree from GitHub and group .zip / .zip.partNNN blobs by target path."""
+    url = f"https://api.github.com/repos/{repo}/git/trees/{branch}?recursive=1"
+    headers = {"User-Agent": "biblematedata"}
+    resp = requests.get(url, headers=headers, timeout=30)
+    resp.raise_for_status()
+    data = resp.json()
+
+    grouped = defaultdict(list)
+    for item in data.get("tree", []):
+        if item.get("type") != "blob":
+            continue
+        blob_path = item.get("path", "")
+        if not blob_path.startswith(prefix):
+            continue
+        rel_blob = blob_path[len(prefix):]
+        m = _PART_RE.match(rel_blob)
+        if not m:
+            continue
+        zip_rel = m.group(1)
+        part_num = int(m.group(2)) if m.group(2) else 0
+        grouped[zip_rel].append((part_num, blob_path))
+
+    for zip_rel in grouped:
+        grouped[zip_rel].sort(key=lambda x: x[0])
+    return dict(sorted(grouped.items()))
+
+
+def download_github_file(blob_path, dest_file, mode="wb", repo=GITHUB_REPO, branch=GITHUB_BRANCH, retries=3):
+    """Stream-download a single raw file from GitHub with retries."""
+    url = f"https://raw.githubusercontent.com/{repo}/{branch}/{blob_path}"
+    for attempt in range(1, retries + 1):
+        try:
+            with requests.get(url, stream=True, timeout=60) as resp:
+                resp.raise_for_status()
+                with open(dest_file, mode) as f:
+                    for chunk in resp.iter_content(chunk_size=65536):
+                        if chunk:
+                            f.write(chunk)
+            return
+        except Exception as e:
+            if attempt == retries:
+                raise
+            print(f"Attempt {attempt} failed for {blob_path}: {e}. Retrying...")
+            time.sleep(3 * attempt)
+
+
+def download_github_data(data_root=None, force=False):
+    """Download and unzip all database archives from GitHub into ~/biblemate/data."""
+    if data_root is None:
+        data_root = os.path.join(os.path.expanduser("~"), "biblemate", "data")
+    Path(data_root).mkdir(parents=True, exist_ok=True)
+
+    print(f"Fetching file list from https://github.com/{GITHUB_REPO} ...")
+    archives = list_github_data_archives()
+    total = len(archives)
+    print(f"Found {total} data files.")
+
+    for idx, (zip_rel, parts) in enumerate(archives.items(), 1):
+        target_rel = zip_rel[:-4]  # strip .zip
+        final_path = os.path.join(data_root, target_rel)
+        target_folder = os.path.dirname(final_path)
+        Path(target_folder).mkdir(parents=True, exist_ok=True)
+
+        if os.path.exists(final_path):
+            if force:
+                os.remove(final_path)
+            else:
+                print(f"[{idx}/{total}] {final_path} already exists.")
+                continue
+
+        tmp_zip = os.path.join(data_root, zip_rel)
+        if os.path.isfile(tmp_zip):
+            os.remove(tmp_zip)
+
+        try:
+            print(f"[{idx}/{total}] Downloading {target_rel} ...")
+            for part_idx, (_, blob_path) in enumerate(parts):
+                mode = "wb" if part_idx == 0 else "ab"
+                download_github_file(blob_path, tmp_zip, mode=mode)
+            with zipfile.ZipFile(tmp_zip, "r") as zip_ref:
+                zip_ref.extractall(target_folder)
+        except Exception as e:
+            print(f"Error downloading {target_rel}: {e}")
+        finally:
+            if os.path.isfile(tmp_zip):
+                os.remove(tmp_zip)
 
 def start_download(file_id, destination):
     URL = "https://docs.google.com/uc?export=download"
@@ -271,11 +277,13 @@ def downloadbibleaudioaction(module, repo, force=False):
         print("Errors!")
 
 def main():
-    # download files
+    # download database files from GitHub
+    download_github_data()
+    # download podcast files from Google Drive
     for i in FILE_IDS:
         download_google_drive_file(i)
     # setup custom folders
-    for i in ("lexicons", "commentaries", "audio", "bibles", "books"):
+    for i in ("lexicons", "commentaries", "audio", "bibles", "books", "clauses"):
         target_folder = os.path.join(os.path.expanduser("~"), "biblemate", "data_custom", i)
         if not os.path.isdir(target_folder):
             Path(target_folder).mkdir(parents=True, exist_ok=True)
