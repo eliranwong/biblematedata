@@ -277,20 +277,26 @@ def main():
         target_folder = os.path.join(os.path.expanduser("~"), "biblemate", "data_custom", i)
         if not os.path.isdir(target_folder):
             Path(target_folder).mkdir(parents=True, exist_ok=True)
+    # ensure audio folder exists
+    audio_root = os.path.join(os.path.expanduser("~"), "biblemate", "data", "audio")
+    Path(audio_root).mkdir(parents=True, exist_ok=True)
     # downloading default audio with git clone
     if not args.no_audio:
-        for i in (
-            "NET (American accent; verse-by-verse)",
-            "OHGB (Hebrew & Greek; slow; verse-by-verse)",
-            "BHS5 (Hebrew; word-by-word)",
-            "OGNT (Greek; word-by-word)",
-        ):
-            module, repo, *_ = AUDIO_REPOS[i]
-            downloadbibleaudioaction(module, repo)
-        # download more audio
-        download_audio = True
-        while download_audio:
-            download_audio = downloadbibleaudio()
+        if not shutil.which("git"):
+            print("git is not installed. Skipping Bible audio downloads.")
+        else:
+            for i in (
+                "NET (American accent; verse-by-verse)",
+                "OHGB (Hebrew & Greek; slow; verse-by-verse)",
+                "BHS5 (Hebrew; word-by-word)",
+                "OGNT (Greek; word-by-word)",
+            ):
+                module, repo, *_ = AUDIO_REPOS[i]
+                downloadbibleaudioaction(module, repo)
+            # download more audio
+            download_audio = True
+            while download_audio:
+                download_audio = downloadbibleaudio()
 
 if __name__ == "__main__":
     main()
