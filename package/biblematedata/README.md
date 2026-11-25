@@ -2,7 +2,7 @@
 
 Essential Bible data for [BibleMate Web](https://github.com/eliranwong/biblemateweb) and [BibleMate Agentic Workspace](https://github.com/eliranwong/biblemate-agentic-workspace) (part of [BibleMate AI](https://github.com/eliranwong/biblemate)).
 
-Web Demo: https://web.biblemate.ai
+Web Demo: https://app.biblemate.ai
 
 ---
 
