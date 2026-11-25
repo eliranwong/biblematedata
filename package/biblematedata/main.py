@@ -1,10 +1,12 @@
-import os, re, zipfile, gdown, time, random, requests, shutil
+import os, re, zipfile, time, requests, shutil
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.shortcuts import radiolist_dialog
 from pathlib import Path
 
 GITHUB_REPO = "eliranwong/biblematedata"
+GITHUB_PODCAST_REPO = "eliranwong/biblematedata-podcast"
 GITHUB_BRANCH = "main"
 GITHUB_DATA_PREFIX = "biblemate/data/"
 
@@ -34,12 +36,6 @@ AUDIO_REPOS = {
     "WEB (British accent; verse-by-verse)": ("WEB", "eliranwong/MP3_WebEnglishBible_british", "default"), 
     "WLC (Hebrew; fast; verse-by-verse)": ("WLC", "eliranwong/MP3_WLC_fast", "default"),
     "WLC (Hebrew; slow; verse-by-verse)": ("WLC", "eliranwong/MP3_WLC_slow", "default"),
-}
-
-FILE_IDS = {
-    # podcast - new (kept on Google Drive due to large number of files)
-    "podcast": ((), "1aNS8rtdQcTZGub6jhZhEarpUK3R4f_x8"),
-    # audio (via git clone)
 }
 
 _PART_RE = re.compile(r"^(.*\.zip)(?:\.part(\d+))?$")
@@ -133,81 +129,70 @@ def download_github_data(data_root=None, force=False):
             if os.path.isfile(tmp_zip):
                 os.remove(tmp_zip)
 
-def start_download(file_id, destination):
-    URL = "https://docs.google.com/uc?export=download"
-    session = requests.Session()
-    response = session.get(URL, params={'id': file_id}, stream=True)
-    
-    # Handle large file warning tokens
-    token = None
-    for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
-            token = value
-            break
+def list_github_podcast_files(repo=GITHUB_PODCAST_REPO, branch=GITHUB_BRANCH):
+    """Fetch the file list from the podcast GitHub repository."""
+    url = f"https://api.github.com/repos/{repo}/git/trees/{branch}?recursive=1"
+    headers = {"User-Agent": "biblematedata"}
+    resp = requests.get(url, headers=headers, timeout=30)
+    resp.raise_for_status()
+    data = resp.json()
 
-    if token:
-        params = {'id': file_id, 'confirm': token}
-        response = session.get(URL, params=params, stream=True)
+    files = []
+    for item in data.get("tree", []):
+        if item.get("type") != "blob":
+            continue
+        blob_path = item.get("path", "")
+        if "/" not in blob_path:
+            continue
+        files.append(blob_path)
+    return sorted(files)
 
-    with open(destination, "wb") as f:
-        for chunk in response.iter_content(32768):
-            if chunk:
-                f.write(chunk)
 
-def download_google_drive_file(file_id, target_folder=None, force=False):
-    # check if target folder exists
-    if target_folder is None:
-        target_folder = os.path.join(os.path.expanduser("~"), "biblemate", "data", *FILE_IDS[file_id][0])
-    if not os.path.isdir(target_folder):
-        Path(target_folder).mkdir(parents=True, exist_ok=True)
-    # check if final path exists
-    final_path = os.path.join(target_folder, file_id)
-    #print(f"Checking if {final_path} exists")
-    if os.path.exists(final_path):
-        if force:
-            os.remove(final_path)
-        else:
-            print(f"{final_path} already exists.")
-            return final_path
-    # download
-    try:
-        print(f"Downloading {file_id}")
-        output = os.path.join(target_folder, file_id+".zip")
-        if os.path.isfile(output):
-            os.remove(output)
-        if os.path.isfile(output[:-4]):
-            os.remove(output[:-4])
-        start_download(FILE_IDS[file_id][-1], output)
-        with zipfile.ZipFile(output, 'r') as zip_ref:
-            zip_ref.extractall(target_folder)
-        if os.path.isfile(output):
-            os.remove(output)
-        # Wait between 5 to 15 seconds before the next download, to workaround rate limit 
-        delay = random.uniform(5, 15)
-        print("Waiting for", delay, "seconds...")
-        time.sleep(random.uniform(5, 15))
-    except Exception as e:
-        print(f"Error downloading {file_id} in the first try: {str(e)}")
-        #traceback.print_exc()
-        delay = 15
-        print("Waiting for", delay, "seconds...")
-        time.sleep(delay)
-        try:
-            # 2nd attempt with gdown
-            print(f"Trying again to download {file_id}")
-            gdown.download(id=FILE_IDS[file_id][-1], output=output)
-            with zipfile.ZipFile(output, 'r') as zip_ref:
-                zip_ref.extractall(target_folder)
-            if os.path.isfile(output):
-                os.remove(output)
-        except Exception as e:
-            print(f"Error downloading {file_id}: {str(e)}")
-            #traceback.print_exc()
-            delay = 15
-            print("Waiting for", delay, "seconds...")
-            time.sleep(delay)
-        return ""
-    return final_path
+def download_github_podcast(podcast_root=None, force=False, max_workers=4):
+    """Download all podcast files from GitHub into ~/biblemate/data/podcast."""
+    if podcast_root is None:
+        podcast_root = os.path.join(os.path.expanduser("~"), "biblemate", "data", "podcast")
+    Path(podcast_root).mkdir(parents=True, exist_ok=True)
+
+    print(f"Fetching podcast file list from https://github.com/{GITHUB_PODCAST_REPO} ...")
+    files = list_github_podcast_files()
+    total = len(files)
+    print(f"Found {total} podcast files.")
+
+    to_download = []
+    for idx, blob_path in enumerate(files, 1):
+        final_path = os.path.join(podcast_root, blob_path)
+        Path(os.path.dirname(final_path)).mkdir(parents=True, exist_ok=True)
+        if os.path.exists(final_path):
+            if force:
+                os.remove(final_path)
+            else:
+                continue
+        to_download.append((idx, blob_path, final_path))
+
+    skipped = total - len(to_download)
+    if skipped:
+        print(f"Skipping {skipped} existing podcast files.")
+
+    if not to_download:
+        return
+
+    def _fetch(item):
+        idx, blob_path, final_path = item
+        tmp_path = final_path + ".part"
+        download_github_file(blob_path, tmp_path, mode="wb", repo=GITHUB_PODCAST_REPO)
+        os.replace(tmp_path, final_path)
+        return idx, blob_path
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_fetch, item): item for item in to_download}
+        for future in as_completed(futures):
+            idx, blob_path, _ = futures[future]
+            try:
+                future.result()
+                print(f"[{idx}/{total}] Downloaded {blob_path}")
+            except Exception as e:
+                print(f"Error downloading {blob_path}: {e}")
 
 def getValidOptions(options=[], descriptions=[], bold_descriptions=False, filter="", default="", title="Available Options", text="Select an item:"):
     if not options:
@@ -279,9 +264,8 @@ def downloadbibleaudioaction(module, repo, force=False):
 def main():
     # download database files from GitHub
     download_github_data()
-    # download podcast files from Google Drive
-    for i in FILE_IDS:
-        download_google_drive_file(i)
+    # download podcast files from GitHub
+    download_github_podcast()
     # setup custom folders
     for i in ("lexicons", "commentaries", "audio", "bibles", "books", "clauses"):
         target_folder = os.path.join(os.path.expanduser("~"), "biblemate", "data_custom", i)
