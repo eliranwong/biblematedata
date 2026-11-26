@@ -22,27 +22,47 @@ Web Demo: https://app.biblemate.ai
 1. Install or upgrade the `biblematedata` package:
 
 ```bash
-pip install -U biblematedata
+pip install --upgrade --no-cache-dir biblematedata
 ```
 
-2. Download and set up the data into `~/biblemate/data`:
+2. Download and set up the data into `~/biblemate`:
 
-- **Full setup** (databases, podcast files, and Bible audio — recommended for **BibleMate Web**):
+- **Full setup** (recommended for **BibleMate Web**):
 
 ```bash
 biblematedata
 ```
 
-- **Databases only** (skip podcast and Bible audio — recommended for **BibleMate Agentic Workspace** users):
+By default, this installs:
+- **Databases** into `~/biblemate/data`
+- **Podcast files** into `~/biblemate/data/podcast`
+- **Custom data folders** in `~/biblemate/data_custom/` (`lexicons`, `commentaries`, `audio`, `bibles`, `books`, `clauses`)
+- **BibleMate agentic workspace** into `~/biblemate`
+- **Default Bible audio** (`NET` American accent, `OHGB` slow, `BHS5`, and `OGNT`) into `~/biblemate/data/audio/bibles/<module>/default`, followed by an interactive prompt to download additional Bible audio
+
+- **Databases & workspace only** (skip podcast and Bible audio — recommended for **BibleMate Agentic Workspace** users):
 
 ```bash
 biblematedata --no-podcast --no-audio
+```
+
+### Downloading Additional Bible Audio
+
+During `biblematedata` (without `--no-audio`), an interactive menu appears after the default audio modules (`NET`, `OHGB`, `BHS5`, `OGNT`) so you can select and download additional supported Bible audio modules (or replace existing ones) until you cancel.
+
+To download additional Bible audio at any time without re-running the full setup, run:
+
+```bash
+biblematedata --audio-only
 ```
 
 ### Available Options
 
 - `--no-podcast` — Skip downloading podcast files from [biblematedata-podcast](https://github.com/eliranwong/biblematedata-podcast).
 - `--no-audio` — Skip downloading Bible audio files.
+- `--podcast-only` — Only download podcast files from [biblematedata-podcast](https://github.com/eliranwong/biblematedata-podcast).
+- `--audio-only` — Only download Bible audio files.
+- `--workspace-only` — Only download and unpack the BibleMate agentic workspace into `~/biblemate`.
 
 ## Troubleshoot
 

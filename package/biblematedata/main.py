@@ -261,11 +261,76 @@ def downloadbibleaudioaction(module, repo, force=False):
     except:
         print("Errors!")
 
+def setup_agentic_workspace(biblemate_root=None):
+    """Download and unpack the BibleMate agentic workspace into ~/biblemate (overwriting existing files)."""
+    if biblemate_root is None:
+        biblemate_root = os.path.join(os.path.expanduser("~"), "biblemate")
+    Path(biblemate_root).mkdir(parents=True, exist_ok=True)
+    for folder in ("biblemate", "notes", "images", "export", "bibles"):
+        Path(os.path.join(biblemate_root, folder)).mkdir(parents=True, exist_ok=True)
+
+    tmp_zip = os.path.join(biblemate_root, "manual_setup.zip")
+    if os.path.isfile(tmp_zip):
+        os.remove(tmp_zip)
+
+    try:
+        print("Setting up BibleMate agentic workspace ...")
+        download_github_file(
+            "manual_setup.zip",
+            tmp_zip,
+            repo="eliranwong/antigravity-biblemate-workspace",
+            branch="main",
+        )
+        with zipfile.ZipFile(tmp_zip, "r") as zip_ref:
+            zip_ref.extractall(biblemate_root)
+        print("BibleMate agentic workspace installed!")
+    except Exception as e:
+        print(f"Error setting up BibleMate agentic workspace: {e}")
+    finally:
+        if os.path.isfile(tmp_zip):
+            os.remove(tmp_zip)
+
+
+def setup_bible_audio():
+    """Ensure the audio folder exists and download default and user-selected Bible audio."""
+    audio_root = os.path.join(os.path.expanduser("~"), "biblemate", "data", "audio")
+    Path(audio_root).mkdir(parents=True, exist_ok=True)
+    if not shutil.which("git"):
+        print("git is not installed. Skipping Bible audio downloads.")
+        return
+    for i in (
+        "NET (American accent; verse-by-verse)",
+        "OHGB (Hebrew & Greek; slow; verse-by-verse)",
+        "BHS5 (Hebrew; word-by-word)",
+        "OGNT (Greek; word-by-word)",
+    ):
+        module, repo, *_ = AUDIO_REPOS[i]
+        downloadbibleaudioaction(module, repo)
+    # download more audio
+    download_audio = True
+    while download_audio:
+        download_audio = downloadbibleaudio()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Download and set up BibleMate AI data.")
     parser.add_argument("--no-podcast", action="store_true", help="Skip downloading podcast files.")
     parser.add_argument("--no-audio", action="store_true", help="Skip downloading Bible audio files.")
+    only_group = parser.add_mutually_exclusive_group()
+    only_group.add_argument("--podcast-only", action="store_true", help="Only download podcast files.")
+    only_group.add_argument("--audio-only", action="store_true", help="Only download Bible audio files.")
+    only_group.add_argument("--workspace-only", action="store_true", help="Only set up the BibleMate agentic workspace.")
     args = parser.parse_args()
+
+    if args.podcast_only:
+        download_github_podcast()
+        return
+    if args.audio_only:
+        setup_bible_audio()
+        return
+    if args.workspace_only:
+        setup_agentic_workspace()
+        return
 
     # download database files from GitHub
     download_github_data()
@@ -277,26 +342,15 @@ def main():
         target_folder = os.path.join(os.path.expanduser("~"), "biblemate", "data_custom", i)
         if not os.path.isdir(target_folder):
             Path(target_folder).mkdir(parents=True, exist_ok=True)
+    # setup biblemate agentic workspace
+    setup_agentic_workspace()
+
     # ensure audio folder exists
     audio_root = os.path.join(os.path.expanduser("~"), "biblemate", "data", "audio")
     Path(audio_root).mkdir(parents=True, exist_ok=True)
     # downloading default audio with git clone
     if not args.no_audio:
-        if not shutil.which("git"):
-            print("git is not installed. Skipping Bible audio downloads.")
-        else:
-            for i in (
-                "NET (American accent; verse-by-verse)",
-                "OHGB (Hebrew & Greek; slow; verse-by-verse)",
-                "BHS5 (Hebrew; word-by-word)",
-                "OGNT (Greek; word-by-word)",
-            ):
-                module, repo, *_ = AUDIO_REPOS[i]
-                downloadbibleaudioaction(module, repo)
-            # download more audio
-            download_audio = True
-            while download_audio:
-                download_audio = downloadbibleaudio()
+        setup_bible_audio()
 
 if __name__ == "__main__":
     main()
