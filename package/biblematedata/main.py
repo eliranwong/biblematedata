@@ -12,7 +12,7 @@ GITHUB_DATA_PREFIX = "biblemate/data/"
 
 
 AUDIO_REPOS = {
-    "ASV (American accent; verse-by-verse)": ("BBE", "eliranwong/MP3_AmericanStandardVersion_american", "default"),
+    "ASV (American accent; verse-by-verse)": ("ASV", "eliranwong/MP3_AmericanStandardVersion_american", "default"),
     "BBE (British accent; verse-by-verse)": ("BBE", "eliranwong/MP3_BibleInBasicEnglish_british", "default"),
     "BHS5 (Hebrew; word-by-word)": ("BHS5", "eliranwong/MP3_BHS5_word-by-word", "default"),
     "BSB (American accent; verse-by-verse)": ("BSB", "eliranwong/MP3_BereanStudyBible_american", "default"),
@@ -221,45 +221,76 @@ def getValidOptions(options=[], descriptions=[], bold_descriptions=False, filter
 
 def downloadbibleaudio(default=""):
     options = list(AUDIO_REPOS.keys())
-    userInput = getValidOptions(options=options, title="Downlaod Bible Audio", default=default, text="NET (American accent), OHGB (slow), BHS5, OGNT are downloaded by default. \nSelect below for a replacement or new download:")
+    userInput = getValidOptions(options=options, title="Download Bible Audio", default=default, text="NET (American accent), OHGB (slow), BHS5, OGNT are downloaded by default. \nSelect below for a replacement or new download:")
     if not userInput:
         return False
     print(f"You selected '{userInput}'.")
-    module, repo, *_ = AUDIO_REPOS[userInput]
-    downloadbibleaudioaction(module, repo, force=True)
+    module, repo, *subfolder = AUDIO_REPOS[userInput]
+    sub = subfolder[0] if subfolder else "default"
+    downloadbibleaudioaction(module, repo, force=True, subfolder=sub)
     return True
 
-def downloadbibleaudioaction(module, repo, force=False):
-    if not shutil.which("git"):
-        print("git is not installed. Please install git and try again.")
-        return
+def list_github_audio_archives(repo, branch=GITHUB_BRANCH):
+    """Fetch the list of .zip files from an audio repository."""
+    url = f"https://api.github.com/repos/{repo}/git/trees/{branch}?recursive=1"
+    headers = {"User-Agent": "biblematedata"}
+    resp = requests.get(url, headers=headers, timeout=30)
+    actual_branch = branch
+    if resp.status_code == 404 and branch != "master":
+        alt_url = f"https://api.github.com/repos/{repo}/git/trees/master?recursive=1"
+        alt_resp = requests.get(alt_url, headers=headers, timeout=30)
+        if alt_resp.status_code == 200:
+            resp = alt_resp
+            actual_branch = "master"
+    resp.raise_for_status()
+    data = resp.json()
+
+    zips = []
+    for item in data.get("tree", []):
+        if item.get("type") != "blob":
+            continue
+        blob_path = item.get("path", "")
+        if blob_path.endswith(".zip"):
+            zips.append(blob_path)
+    return sorted(zips), actual_branch
+
+def downloadbibleaudioaction(module, repo, force=False, subfolder="default", branch=GITHUB_BRANCH, audio_dir=None):
+    if audio_dir is None:
+        audioDir = os.path.join(os.path.expanduser("~"), "biblemate", "data", "audio", "bibles", module, subfolder)
+    else:
+        audioDir = audio_dir
+    # remove old files
+    if os.path.isdir(audioDir):
+        if force:
+            shutil.rmtree(audioDir)
+        else:
+            print(f"{audioDir} already exists.")
+            return
+    Path(audioDir).mkdir(parents=True, exist_ok=True)
     try:
-        audioDir = os.path.join(os.path.expanduser("~"), "biblemate", "data", "audio", "bibles", module, "default")
-        # remove old files
-        if os.path.isdir(audioDir):
-            # os.rmdir does not work with sub directories
-            # os.rmdir(audioDir)
-            # use shutil.rmtree instead
-            if force:
-                shutil.rmtree(audioDir)
-            else:
-                print(f"{audioDir} already exists.")
-                return
-        Path(audioDir).mkdir(parents=True, exist_ok=True)
-        os.system(f"git clone https://github.com/{repo} {audioDir}")
-        print("Downloaded!")
-        print(f"unpacking `{module}` audio files ...")
-        for item in os.listdir(audioDir):
-            zipFile = os.path.join(audioDir, item)
-            if os.path.isfile(zipFile) and item.endswith(".zip"):
-                #os.system(f"unzip {zipFile}")
-                # Unzip file
-                shutil.unpack_archive(zipFile, audioDir)
-                # Delete zip file
-                os.remove(zipFile)
+        print(f"Fetching audio archive list from https://github.com/{repo} ...")
+        archives, actual_branch = list_github_audio_archives(repo, branch=branch)
+        total = len(archives)
+        print(f"Found {total} audio archive files for `{module}`.")
+
+        for idx, blob_path in enumerate(archives, 1):
+            tmp_zip = os.path.join(audioDir, os.path.basename(blob_path))
+            if os.path.isfile(tmp_zip):
+                os.remove(tmp_zip)
+            try:
+                print(f"[{idx}/{total}] Downloading {blob_path} ...")
+                download_github_file(blob_path, tmp_zip, repo=repo, branch=actual_branch)
+                print(f"[{idx}/{total}] Unpacking {blob_path} ...")
+                with zipfile.ZipFile(tmp_zip, "r") as zip_ref:
+                    zip_ref.extractall(audioDir)
+            except Exception as e:
+                print(f"Error processing {blob_path}: {e}")
+            finally:
+                if os.path.isfile(tmp_zip):
+                    os.remove(tmp_zip)
         print(f"`{module}` audio installed!")
-    except:
-        print("Errors!")
+    except Exception as e:
+        print(f"Error downloading `{module}` audio: {e}")
 
 def setup_agentic_workspace(biblemate_root=None):
     """Download and unpack the BibleMate agentic workspace into ~/biblemate (overwriting existing files)."""
@@ -295,17 +326,15 @@ def setup_bible_audio():
     """Ensure the audio folder exists and download default and user-selected Bible audio."""
     audio_root = os.path.join(os.path.expanduser("~"), "biblemate", "data", "audio")
     Path(audio_root).mkdir(parents=True, exist_ok=True)
-    if not shutil.which("git"):
-        print("git is not installed. Skipping Bible audio downloads.")
-        return
     for i in (
         "NET (American accent; verse-by-verse)",
         "OHGB (Hebrew & Greek; slow; verse-by-verse)",
         "BHS5 (Hebrew; word-by-word)",
         "OGNT (Greek; word-by-word)",
     ):
-        module, repo, *_ = AUDIO_REPOS[i]
-        downloadbibleaudioaction(module, repo)
+        module, repo, *subfolder = AUDIO_REPOS[i]
+        sub = subfolder[0] if subfolder else "default"
+        downloadbibleaudioaction(module, repo, subfolder=sub)
     # download more audio
     download_audio = True
     while download_audio:
@@ -348,7 +377,7 @@ def main():
     # ensure audio folder exists
     audio_root = os.path.join(os.path.expanduser("~"), "biblemate", "data", "audio")
     Path(audio_root).mkdir(parents=True, exist_ok=True)
-    # downloading default audio with git clone
+    # downloading default audio
     if not args.no_audio:
         setup_bible_audio()
 

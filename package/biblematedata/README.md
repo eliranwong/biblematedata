@@ -15,7 +15,6 @@ Web Demo: https://app.biblemate.ai
 ## Requirement
 
 - Python `>= 3.10`
-- `git` command line tool (only required if downloading Bible audio files)
 
 ## Installation
 
